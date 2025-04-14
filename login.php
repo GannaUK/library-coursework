@@ -1,6 +1,71 @@
 <?php
 $prefilledUsername = $_GET['username'] ?? '';
+
+session_start(); 
+
+// Check if the user is already logged in, redirect to the appropriate dashboard
+if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
+
+    // Redirect to the dashboard based on the role
+    if ($_SESSION['role'] === 'admin' && $_SESSION['is_admin'] == 1) {
+        // If admin, redirect to the admin dashboard
+        header('Location: admin_dashboard.php');
+    } else {
+        // If user, redirect to the user dashboard
+        header('Location: user_dashboard.php');
+    }
+   
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    require_once 'includes/db.php';
+
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $role = $_POST['role'] ?? 'user';
+
+
+    $stmt = $pdo->prepare("SELECT id, password, is_admin FROM db_users WHERE username = :username");
+    $stmt->execute(['username' => $username]);
+
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Check if the user exists and the password is correct
+    if ($user && password_verify($password, $user['password'])) {
+        // If the user selected admin, verify their admin rights
+        if ($role === 'admin' && $user['is_admin'] == 0) {
+            // If the user is not an admin, show an error
+            $error_message = "You do not have admin rights.";
+        } else {
+            // If the user has admin rights or selected the user role
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $username;
+            $_SESSION['role'] = $role; // Save the role in the session
+            $_SESSION['is_admin'] = $user['is_admin'];
+
+            // Redirect to the appropriate dashboard based on the role
+            if ($role === 'admin' && $user['is_admin'] == 1) {
+                // If admin, redirect to the admin dashboard
+                header('Location: admin_dashboard.php');
+            } else {
+                // If user, redirect to the user dashboard
+                header('Location: user_dashboard.php');
+            }
+            exit;
+        }
+    } else {
+        // If the username or password is incorrect
+        $error_message = "Invalid username or password!";
+    }
+}
 ?>
+
+<?php if (isset($error_message)): ?>
+    <div class="alert alert-danger" role="alert">
+        <?php echo $error_message; ?>
+    </div>
+<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -27,7 +92,7 @@ $prefilledUsername = $_GET['username'] ?? '';
                     <input type="password" name="password" class="form-control" id="password" required>
                 </div>
                 <div class="mb-3">
-                    <select class="form-select form-select-sm" aria-label="Small select">
+                    <select class="form-select form-select-sm" aria-label="Small select" name="role" id="role">
                         <option selected="">Select role</option>
                         <option value="admin">Admin</option>
                         <option value="user">User</option>
