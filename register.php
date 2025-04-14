@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/register.js" defer></script>
 </head>
 
 <body class="bg-light">
@@ -12,7 +13,7 @@
     <div class="container d-flex justify-content-center align-items-center vh-100">
         <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
             <h2 class="text-center mb-4">Register</h2>
-            <form method="POST" action="register.php">
+            <form method="POST" action="actions/register.php" id="registerForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" name="username" class="form-control" id="username" required>
