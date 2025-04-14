@@ -33,6 +33,8 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-outline-primary btn-lg w-100">Log In</button>
+                <a href="forgotten_password.php" class="btn btn-link">Forgot password</a>
+
             </form>
         </div>
     </div>
