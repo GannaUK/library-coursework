@@ -11,7 +11,7 @@
 
     <div class="container d-flex justify-content-center align-items-center vh-100">
         <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
-            <b class="text-center mb-4">To recover your password, provide these known details</b>
+            <b class="text-center mb-4">To recover your password, provide these details</b>
             <form method="POST" action="actions/recover.php">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
