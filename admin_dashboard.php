@@ -13,7 +13,6 @@ $stmt->execute(['username' => $username]);
 $user = $stmt->fetch();
 $email = $user['email'] ?? '';
 $dob = $user['dob'] ?? '';
-
 ?>
 
 <!DOCTYPE html>
@@ -48,18 +47,15 @@ $dob = $user['dob'] ?? '';
 
         <div class="tab-content" id="adminTabContent">
 
-
             <!-- Users Management Tab -->
             <div class="tab-pane fade show active" id="users" role="tabpanel">
-                <!-- <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Manage Users</h5>
-                    <p>Here will be the user management table or controls.</p>
-                </div> -->
                 <div class="row g-4">
-                    <!-- Левая часть: Таблица пользователей -->
+                    <!-- Таблица пользователей -->
                     <div class="col-md-8">
                         <div class="card shadow-sm p-3">
                             <h5 class="card-title mb-3">All Users</h5>
+                            <button id="show-create-form" class="btn btn-success btn-sm mb-3">+ New User</button>
+
                             <table class="table table-bordered table-hover">
                                 <thead class="table-light">
                                     <tr>
@@ -75,23 +71,30 @@ $dob = $user['dob'] ?? '';
                                     <?php
                                     $stmt = $pdo->query("SELECT * FROM db_users ORDER BY id ASC");
                                     while ($row = $stmt->fetch()) {
+                                        $id = htmlspecialchars($row['id']);
+                                        $username = htmlspecialchars($row['username']);
+                                        $email = htmlspecialchars($row['email']);
+                                        $dob = htmlspecialchars($row['dob']);
+                                        $isAdmin = $row['is_admin'] ? 'Yes' : 'No';
+                                        $isAdminVal = (int)$row['is_admin'];
+
                                         echo "<tr>
-                            <td>{$row['id']}</td>
-                            <td>{$row['username']}</td>
-                            <td>" . ($row['is_admin'] ? 'Yes' : 'No') . "</td>
-                            <td>{$row['email']}</td>
-                            <td>{$row['dob']}</td>
-                            <td>
-                                <button class='btn btn-sm btn-outline-primary me-1 edit-user' 
-                                    data-id='{$row['id']}'
-                                    data-username='{$row['username']}'
-                                    data-is_admin='{$row['is_admin']}'
-                                    data-email='{$row['email']}'
-                                    data-dob='{$row['dob']}'
-                                >Edit</button>
-                                <a href='actions/delete_user.php?id={$row['id']}' class='btn btn-sm btn-outline-danger'>Delete</a>
-                            </td>
-                        </tr>";
+                                            <td>{$id}</td>
+                                            <td>{$username}</td>
+                                            <td>{$isAdmin}</td>
+                                            <td>{$email}</td>
+                                            <td>{$dob}</td>
+                                            <td>
+                                                <button class='btn btn-sm btn-outline-primary me-1 edit-user' 
+                                                    data-id='{$id}'
+                                                    data-username='{$username}'
+                                                    data-is_admin='{$isAdminVal}'
+                                                    data-email='{$email}'
+                                                    data-dob='{$dob}'
+                                                >Edit</button>
+                                                <a href='#' class='btn btn-sm btn-outline-danger btn-delete-user' data-id='{$id}'>Delete</a>
+                                            </td>
+                                        </tr>";
                                     }
                                     ?>
                                 </tbody>
@@ -99,10 +102,10 @@ $dob = $user['dob'] ?? '';
                         </div>
                     </div>
 
-                    <!-- Правая часть: Форма редактирования -->
+                    <!-- Форма редактирования -->
                     <div class="col-md-4">
-                        <div class="card shadow-sm p-3" style="background-color: #f8f9fa;">
-                            <h5 class="card-title mb-3">Add / Edit User</h5>
+                        <div id="edit-form-container" class="card shadow-sm p-3 d-none" style="background-color: #f8f9fa;">
+                            <h5 class="card-title mb-3">Edit User</h5>
                             <form method="POST" action="actions/update_profile.php">
                                 <input type="hidden" name="id" id="edit-id" />
                                 <div class="mb-2">
@@ -117,19 +120,45 @@ $dob = $user['dob'] ?? '';
                                     <label for="edit-dob" class="form-label">Date of Birth</label>
                                     <input type="date" class="form-control" id="edit-dob" name="dob" />
                                 </div>
-                                <!-- Скрытое поле для передачи ложного значения -->
-                                <input type="hidden" name="edit_is_admin" value="false" />
-
+                                <input type="hidden" name="edit_is_admin" value="0" />
                                 <div class="form-check mb-3">
-                                    <input type="checkbox" class="form-check-input" id="edit_is_admin" name="edit_is_admin" />
-                                    <label for="edit_is_admin" class="form-check-label">Is Admin</label>
+                                    <input type="checkbox" class="form-check-input" id="edit_is_admin_cb" name="edit_is_admin" value="1" />
+                                    <label for="edit_is_admin_cb" class="form-check-label">Is Admin</label>
                                 </div>
-                                <button type="submit" class="btn btn-primary w-100"> Edit user</button>
+                                <button type="submit" name="action" value="edit" class="btn btn-primary w-100">Edit user</button>
+                            </form>
+                        </div>
+
+                        <!-- Форма создания -->
+                        <div id="create-form-container" class="card shadow-sm p-3 d-none" style="background-color: #f8f9fa;">
+                            <h5 class="card-title mb-3">Create New User</h5>
+                            <form method="POST" action="actions/register.php">
+                                <div class="mb-2">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" class="form-control" name="username" required />
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-control" name="password" required />
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-control" name="email" />
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" name="dob" />
+                                </div>
+                                <input type="hidden" name="edit_is_admin" value="0" />
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="create_is_admin_cb" name="edit_is_admin" value="1" />
+                                    <label for="create_is_admin_cb" class="form-check-label">Is Admin</label>
+                                </div>
+                                <button type="submit" name="action" value="create" class="btn btn-success w-100">Create User</button>
                             </form>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <!-- Books Management Tab -->

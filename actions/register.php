@@ -10,7 +10,7 @@ $password = $input['password'] ?? null;
 $email = $input['email'] ?? null;
 $dob = $input['dob'] ?? null;
 $isAdmin = isset($input['isAdmin']) ? 1 : 0;
-
+$is_admin_POST = isset($input['isAdmin']) && $input['isAdmin'] ? 1 : 0;
 
 if (!$username || !$password || !$email || !$dob) {
     http_response_code(400);
