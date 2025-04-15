@@ -51,10 +51,85 @@ $dob = $user['dob'] ?? '';
 
             <!-- Users Management Tab -->
             <div class="tab-pane fade show active" id="users" role="tabpanel">
-                <div class="card shadow-sm p-4">
+                <!-- <div class="card shadow-sm p-4">
                     <h5 class="card-title mb-3">Manage Users</h5>
                     <p>Here will be the user management table or controls.</p>
+                </div> -->
+                <div class="row g-4">
+                    <!-- Левая часть: Таблица пользователей -->
+                    <div class="col-md-8">
+                        <div class="card shadow-sm p-3">
+                            <h5 class="card-title mb-3">All Users</h5>
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Is Admin</th>
+                                        <th>Email</th>
+                                        <th>Date of Birth</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $stmt = $pdo->query("SELECT * FROM db_users ORDER BY id ASC");
+                                    while ($row = $stmt->fetch()) {
+                                        echo "<tr>
+                            <td>{$row['id']}</td>
+                            <td>{$row['username']}</td>
+                            <td>" . ($row['is_admin'] ? 'Yes' : 'No') . "</td>
+                            <td>{$row['email']}</td>
+                            <td>{$row['dob']}</td>
+                            <td>
+                                <button class='btn btn-sm btn-outline-primary me-1 edit-user' 
+                                    data-id='{$row['id']}'
+                                    data-username='{$row['username']}'
+                                    data-is_admin='{$row['is_admin']}'
+                                    data-email='{$row['email']}'
+                                    data-dob='{$row['dob']}'
+                                >Edit</button>
+                                <a href='actions/delete_user.php?id={$row['id']}' class='btn btn-sm btn-outline-danger'>Delete</a>
+                            </td>
+                        </tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Правая часть: Форма редактирования -->
+                    <div class="col-md-4">
+                        <div class="card shadow-sm p-3" style="background-color: #f8f9fa;">
+                            <h5 class="card-title mb-3">Add / Edit User</h5>
+                            <form method="POST" action="actions/update_profile.php">
+                                <input type="hidden" name="id" id="edit-id" />
+                                <div class="mb-2">
+                                    <label for="edit-username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="edit-username" name="username" required />
+                                </div>
+                                <div class="mb-2">
+                                    <label for="edit-email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="edit-email" name="email" />
+                                </div>
+                                <div class="mb-2">
+                                    <label for="edit-dob" class="form-label">Date of Birth</label>
+                                    <input type="date" class="form-control" id="edit-dob" name="dob" />
+                                </div>
+                                <!-- Скрытое поле для передачи ложного значения -->
+                                <input type="hidden" name="edit_is_admin" value="false" />
+
+                                <div class="form-check mb-3">
+                                    <input type="checkbox" class="form-check-input" id="edit_is_admin" name="edit_is_admin" />
+                                    <label for="edit_is_admin" class="form-check-label">Is Admin</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100"> Edit user</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
             <!-- Books Management Tab -->
@@ -92,6 +167,7 @@ $dob = $user['dob'] ?? '';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/admin_dashboard.js"></script>
 </body>
 
 </html>
