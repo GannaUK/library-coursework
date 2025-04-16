@@ -86,12 +86,6 @@ function fetchAndRenderFilteredBooks(formData) {
     .then((res) => res.json())
     .then((books) => {
       renderBooksTable(books);
-      // Hide the edit/create form if it is open
-      document.getElementById("book-form-container").classList.add("d-none");
-
-      // Additionally, reset the forms
-      document.getElementById("book-create-form").reset();
-      document.getElementById("book-edit-form").reset();
     })
     .catch(() => {
       showError("Filter error");

@@ -39,9 +39,9 @@ $dob = $user['dob'] ?? '';
                 <button class="nav-link active" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
             </li>
 
-            <!-- <li class="nav-item" role="presentation">
-                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
-            </li> -->
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Orders & Returns</button>
+            </li>
 
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">My Settings</button>
@@ -60,7 +60,6 @@ $dob = $user['dob'] ?? '';
                     <div class="col-md-8">
                         <div class="card shadow-sm p-3">
                             <h5 class="card-title mb-3">All Books </h5>
-                            
 
                             <!-- Форма фильтрации книг -->
                             <form id="book-filter-form" class="row g-2 mb-3">
@@ -88,7 +87,6 @@ $dob = $user['dob'] ?? '';
                                     </div>
                                 </div>
                             </form>
-
 
                             <table class="table table-bordered table-hover" id="books-table">
                                 <thead class="table-light">
@@ -155,104 +153,86 @@ $dob = $user['dob'] ?? '';
                         </div>
                     </div>
 
-                    <!-- Форма  создания -->
-                    <div class="col-md-4">
-                        <div id="book-form-container" class="card shadow-sm p-3 d-none" style="background-color: #f8f9fa;">
-
-                            <div id="create-book-form" class="d-none">
-                                <h5 class="card-title mb-3" id="book-form-title">Add Book</h5>
-                                <form id="book-create-form">
-                                    <input type="hidden" id="book-id" name="id" />
-                                    <div class="mb-2">
-                                        <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" name="title" id="book-title" required />
-                                    </div>
-
-                                    <div class="mb-2">
-                                        <label for="book-author" class="form-label">Author</label>
-                                        <input type="text" class="form-control" id="book-author" name="author" required>
-                                    </div>
-
-                                    <div class="mb-2">
-                                        <label class="form-label">Genre</label>
-                                        <input type="text" class="form-control" name="genre" id="book-genre" required />
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Description</label>
-                                        <textarea class="form-control" name="description" id="book-description" required></textarea>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Max Days</label>
-                                        <input type="number" class="form-control" name="max_days" id="book-days" required min="1" />
-                                    </div>
-
-                                    <!-- <div class="border border-primary rounded p-3 mb-3 bg-light">
-                                        <h6 class="mb-2">Stock Management</h6>
-                                        <div class="mb-2">
-                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
-                                            <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
-                                        </div>
-                                    </div> -->
-
-                                    <button type="submit" class="btn btn-success w-100" id="book-form-submit">Save Book</button>
-                                </form>
-
-                            </div>
-
-                            <!-- Форма редактирования -->
-                            <div id="edit-book-form" class="d-none">
-                                <h5 class="card-title mb-3">Edit Book</h5>
-                                <form id="book-edit-form">
-                                    <input type="hidden" name="id" id="edit-book-id" />
-                                    <!-- остальные поля, с префиксом edit- -->
-                                    <div class="mb-2">
-                                        <label class="form-label">Title</label>
-                                        <input type="text" class="form-control" name="title" id="edit-book-title" required />
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Author</label>
-                                        <input type="text" class="form-control" name="author" id="edit-book-author" required />
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Genre</label>
-                                        <input type="text" class="form-control" name="genre" id="edit-book-genre" required />
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Description</label>
-                                        <textarea class="form-control" name="description" id="edit-book-description" required></textarea>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Max Days</label>
-                                        <input type="number" class="form-control" name="max_days" id="edit-book-days" required min="1" />
-                                    </div>
-
-                                    <div class="border border-primary rounded p-3 mb-3 bg-light">
-                                        <h6 class="mb-2">Stock Management</h6>
-                                        <div class="mb-2">
-                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
-                                            <input type="number" class="form-control" name="quantity" id="quantity" />
-                                        </div>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-primary w-100" id="book-form-submit">Save Changes</button>
-                                </form>
-                            </div>
-
-
-
-                        </div>
-                    </div>
                 </div>
             </div>
 
 
-            <!-- Book Arrivals Tab -->
-            <!-- <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
+
+            <!-- Orders & Returns Tab -->
+            <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
                 <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Book Arrivals</h5>
+                    <h5 class="card-title mb-3">Orders & Returns</h5>
                     <p>Here we will manage book movement entries (IN).</p>
+                    <?php
+                    $userId = $_SESSION['user_id']; // предполагаем, что пользователь залогинен
+
+                    // Получаем только активные выдачи: те, по которым ещё нет возврата
+                    $stmt = $pdo->prepare("
+                        SELECT 
+                            bm.id,
+                            b.title,
+                            b.author,
+                            b.max_days,
+                            bm.quantity,
+                            bm.movement_date
+                        FROM book_movements bm
+                        JOIN books b ON bm.book_id = b.id
+                        WHERE bm.user_id = :user_id
+                        AND bm.quantity < 0
+                        AND NOT EXISTS (
+                            SELECT 1 FROM book_movements r
+                            WHERE r.book_id = bm.book_id
+                            AND r.user_id = bm.user_id
+                            AND r.quantity > 0
+                            AND r.movement_date > bm.movement_date
+                        )
+                        ORDER BY bm.movement_date DESC, bm.id DESC
+                    ");
+                    $stmt->execute(['user_id' => $userId]);
+                    $borrowedBooks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    ?>
+
+                    <table class="table table-bordered table-hover" id="book-activity-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Author</th>
+                                <th>Title</th>
+                                <th>Quantity</th>
+                                <th>Borrow Date</th>
+                                <th>Expected Return Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($borrowedBooks as $row): ?>
+                                <?php
+                                $id = htmlspecialchars($row['id']);
+                                $author = htmlspecialchars($row['author']);
+                                $title = htmlspecialchars($row['title']);
+                                $quantity = abs((int)$row['quantity']); // показываем как положительное
+                                $borrowDate = htmlspecialchars($row['movement_date']);
+                                $expectedReturn = date('Y-m-d', strtotime($borrowDate . " + {$row['max_days']} days"));
+                                ?>
+                                <tr>
+                                    <td><?= $author ?></td>
+                                    <td><?= $title ?></td>
+                                    <td><?= $quantity ?></td>
+                                    <td><?= $borrowDate ?></td>
+                                    <td><?= $expectedReturn ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-success return-book-btn" data-id="<?= $id ?>">Return book</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+
+                    </tbody>
+                    </table>
+
+
                 </div>
-            </div> -->
+            </div>
 
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel">
