@@ -56,7 +56,22 @@ try {
         echo json_encode(['success' => true]);
     } elseif ($action === 'GET') {
         // Получение всех книг
-        $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+        // $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+        $stmt = $pdo->query("
+            SELECT 
+            b.id,
+            b.title,
+            b.genre,
+            b.author,
+            b.description,
+            b.max_days,
+            COALESCE(SUM(m.quantity), 0) AS available
+            FROM books b
+            LEFT JOIN book_movements m ON b.id = m.book_id
+            GROUP BY b.id, b.title, b.genre, b.author, b.description, b.max_days
+            ORDER BY b.id ASC
+        ");
+
         $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode(['success' => true, 'books' => $books]);

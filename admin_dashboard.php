@@ -38,14 +38,15 @@ $dob = $user['dob'] ?? '';
                 <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users Management</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books List</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
+                <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
             </li>
 
+            <!-- <li class="nav-item" role="presentation">
+                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
+            </li> -->
+
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">My Settings</button>
             </li>
         </ul>
 
@@ -188,7 +189,7 @@ $dob = $user['dob'] ?? '';
                                 <div class="col-md-3">
                                     <input type="text" class="form-control" name="genre" placeholder="Genre" />
                                 </div>
-                                
+
 
                                 <!-- Кнопки в одной строке -->
                                 <div class="col-md-3">
@@ -196,7 +197,7 @@ $dob = $user['dob'] ?? '';
                                         <div class='btn-group' role='group' aria-label='Basic button group'>
 
                                             <button type="submit" class="btn btn-primary w-100">Filter</button>
-
+                                            
                                             <button type="button" id="reset-filter" class="btn btn-secondary w-100">Reset</button>
 
                                         </div>
@@ -214,12 +215,28 @@ $dob = $user['dob'] ?? '';
                                         <th>Genre</th>
                                         <th>Description</th>
                                         <th>Max Days</th>
+                                        <th>Available</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
-                                    $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+                                    // $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+                                    $stmt = $pdo->query("
+                                        SELECT 
+                                        b.id,
+                                        b.title,
+                                        b.genre,
+                                        b.author,
+                                        b.description,
+                                        b.max_days,
+                                        COALESCE(SUM(m.quantity), 0) AS available
+                                        FROM books b
+                                        LEFT JOIN book_movements m ON b.id = m.book_id
+                                        GROUP BY b.id, b.title, b.genre, b.author, b.description, b.max_days
+                                        ORDER BY b.id ASC
+                                    ");
+
                                     while ($book = $stmt->fetch()) {
                                         $bookId = htmlspecialchars($book['id']);
                                         $title = htmlspecialchars($book['title']);
@@ -227,7 +244,7 @@ $dob = $user['dob'] ?? '';
                                         $genre = htmlspecialchars($book['genre']);
                                         $description = htmlspecialchars($book['description']);
                                         $days = htmlspecialchars($book['max_days']);
-
+                                        $available = htmlspecialchars($book['available']);
                                         echo "<tr>
                                 <td>{$bookId}</td>
                                 <td>{$title}</td>
@@ -235,6 +252,7 @@ $dob = $user['dob'] ?? '';
                                 <td>{$genre}</td>
                                 <td>{$description}</td>
                                 <td>{$days}</td>
+                                <td>{$available}</td>
                                 <td>
                                 <div class='btn-group' role='group' aria-label='Basic button group'>
                                     <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
@@ -331,7 +349,7 @@ $dob = $user['dob'] ?? '';
                                         <h6 class="mb-2">Stock Management</h6>
                                         <div class="mb-2">
                                             <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
-                                            <input type="number" class="form-control" name="quantity" id="quantity"  />
+                                            <input type="number" class="form-control" name="quantity" id="quantity" />
                                         </div>
                                     </div>
 
@@ -348,12 +366,12 @@ $dob = $user['dob'] ?? '';
 
 
             <!-- Book Arrivals Tab -->
-            <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
+            <!-- <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
                 <div class="card shadow-sm p-4">
                     <h5 class="card-title mb-3">Book Arrivals</h5>
                     <p>Here we will manage book movement entries (IN).</p>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel">

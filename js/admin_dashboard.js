@@ -12,18 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
     createFormContainer,
     editFormContainer
   );
+
   setupEditButtons(editFormContainer, createFormContainer);
   setupEditForm(editForm);
   setupDeleteButtons();
 
-  // Кнопка "Добавить книгу"
+  // "Add Book" button
   document
     .getElementById("show-create-book-form")
     .addEventListener("click", function () {
       showCreateBookForm();
     });
 
-  // Кнопки "Редактировать"
+  // "Edit" buttons
   document.querySelectorAll(".edit-book-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const bookData = {
@@ -204,7 +205,7 @@ function showEditBookForm(bookData) {
   document.getElementById("edit-book-days").value = bookData.days;
 }
 
-// Отправка формы создания книги
+// Submit the book creation form
 function handleCreateFormSubmit(event) {
   event.preventDefault();
 
@@ -230,8 +231,8 @@ function handleCreateFormSubmit(event) {
       if (response.success) {
         form.reset();
         showSuccess("Book added!");
-        // refreshBookTable(); // обновим таблицу
-        setupBookFilter();
+        // Refresh the book table
+        triggerBookFilterSubmit();
       } else {
         showError(response.message || "Error adding book.");
       }
@@ -239,7 +240,7 @@ function handleCreateFormSubmit(event) {
     .catch(() => showError("Server error."));
 }
 
-// Отправка формы редактирования книги
+// Submit the book editing form
 function handleEditFormSubmit(event) {
   event.preventDefault();
 
@@ -266,16 +267,12 @@ function handleEditFormSubmit(event) {
     .then((response) => {
       if (response.success) {
         showSuccess("Book updated!");
-        // refreshBookTable(); // обновим таблицу
-        setupBookFilter();
-        //  fetchAndRenderFilteredBooks(formData);
 
-        // Если есть значение quantity — создаём движение книги
+        // If there is a quantity value, create a book movement
         if (!isNaN(data.quantity) && data.quantity !== 0) {
           const movementData = {
             book_id: data.id,
             quantity: data.quantity,
-            // При необходимости можно добавить user_id и movement_date
           };
 
           fetch("actions/book_movements.php", {
@@ -289,19 +286,18 @@ function handleEditFormSubmit(event) {
             .then((movementResponse) => {
               if (movementResponse.success) {
                 showSuccess("Book movement added.");
-                // Прячем форму редактирования/создания, если она открыта
+
+                triggerBookFilterSubmit();
+
+                // Hide the edit/create form if it is open
                 document
                   .getElementById("book-form-container")
                   .classList.add("d-none");
 
-                // Дополнительно сбрасываем формы
-                document
-                  .getElementById("book-create-form").reset();
-                document                  
-                  .getElementById("book-edit-form").reset();
-                
-                attachBookActionHandlers(); //  Подключаем обработчики
+                document.getElementById("book-create-form").reset();
+                document.getElementById("book-edit-form").reset();
 
+                attachBookActionHandlers();
               } else {
                 showError(
                   movementResponse.message || "Error saving book movement."
@@ -328,8 +324,7 @@ function deleteBook(bookId) {
     .then((res) => res.json())
     .then((response) => {
       if (response.success) {
-        setupBookFilter();
-        // refreshBookTable();
+        triggerBookFilterSubmit();
       } else {
         showError("Failed to delete book.");
       }
@@ -338,7 +333,7 @@ function deleteBook(bookId) {
 }
 
 function showSuccess(message) {
-  alert(message); // можно заменить на toast
+  alert(message);
 }
 
 function showError(message) {
@@ -368,60 +363,6 @@ function attachBookActionHandlers() {
   });
 }
 
-// Обновление таблицы книг после изменений
-function refreshBookTable() {
-  fetch("actions/books.php", {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-    },
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (!response.success) {
-        showError("Failed to load books.");
-        return;
-      }
-
-      const books = response.books;
-      const tbody = document.querySelector("#books-table tbody");
-      tbody.innerHTML = "";
-
-      books.forEach((book) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-                    <td>${book.id}</td>
-                    <td>${book.title}</td>
-                    <td>${book.author}</td>
-                    <td>${book.genre}</td>
-                    <td>${book.description}</td>
-                    <td>${book.max_days}</td>
-                    <td>
-                    <div class='btn-group' role='group' aria-label='Basic button group'>
-                        <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
-                            data-id='${book.id}'
-                            data-title='${book.title}'
-                            data-author='${book.author}'
-                            data-genre='${book.genre}'
-                            data-description='${book.description}'
-                            data-days='${book.max_days}'>Edit</button>
-                        <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='${book.id}'>Delete</button>
-                        </div>
-                    </td>
-                `;
-        tbody.appendChild(row);
-      });
-
-      // Прячем форму редактирования/создания, если она открыта
-      document.getElementById("book-form-container").classList.add("d-none");
-
-      // Дополнительно сбрасываем формы
-      document.getElementById("book-create-form").reset();
-      document.getElementById("book-edit-form").reset();
-      attachBookActionHandlers(); //  Подключаем обработчики
-    })
-    .catch(() => showError("Error loading books."));
-}
 
 function fetchAndRenderFilteredBooks(formData) {
   const title = encodeURIComponent(formData.get("title").trim());
@@ -434,13 +375,12 @@ function fetchAndRenderFilteredBooks(formData) {
     .then((res) => res.json())
     .then((books) => {
       renderBooksTable(books);
-      // Прячем форму редактирования/создания, если она открыта
+      // Hide the edit/create form if it is open
       document.getElementById("book-form-container").classList.add("d-none");
 
-      // Дополнительно сбрасываем формы
+      // Additionally, reset the forms
       document.getElementById("book-create-form").reset();
       document.getElementById("book-edit-form").reset();
-      
     })
     .catch(() => {
       showError("Filter error");
@@ -449,7 +389,8 @@ function fetchAndRenderFilteredBooks(formData) {
 
 function renderBooksTable(books) {
   const tbody = document.querySelector("#books-table tbody");
-  tbody.innerHTML = ""; // очищаем старые строки
+  // Clear old rows
+  tbody.innerHTML = "";
 
   if (books.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center">No books found</td></tr>`;
@@ -465,6 +406,7 @@ function renderBooksTable(books) {
             <td>${book.genre}</td>
             <td>${book.description}</td>
             <td>${book.max_days}</td>
+            <td>${book.available}</td>
             <td>
             <div class='btn-group' role='group' aria-label='Basic button group'>
                 <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
@@ -482,7 +424,7 @@ function renderBooksTable(books) {
     tbody.appendChild(tr);
   });
 
-  attachBookActionHandlers(); //  Подключаем обработчики
+  attachBookActionHandlers(); // Reattach event handlers to the buttons
 }
 
 function setupBookFilter() {
@@ -507,4 +449,10 @@ function setupBookFilter() {
           showError("Error resetting filter");
         });
     });
+}
+
+function triggerBookFilterSubmit() {
+  const form = document.getElementById("book-filter-form");
+  const event = new Event("submit", { bubbles: true, cancelable: true });
+  form.dispatchEvent(event);
 }
