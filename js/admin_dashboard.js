@@ -230,7 +230,8 @@ function handleCreateFormSubmit(event) {
       if (response.success) {
         form.reset();
         showSuccess("Book added!");
-        refreshBookTable(); // обновим таблицу
+        // refreshBookTable(); // обновим таблицу
+        setupBookFilter();
       } else {
         showError(response.message || "Error adding book.");
       }
@@ -265,7 +266,8 @@ function handleEditFormSubmit(event) {
     .then((response) => {
       if (response.success) {
         showSuccess("Book updated!");
-        refreshBookTable(); // обновим таблицу
+        // refreshBookTable(); // обновим таблицу
+        setupBookFilter();
         //  fetchAndRenderFilteredBooks(formData);
 
         // Если есть значение quantity — создаём движение книги
@@ -287,6 +289,19 @@ function handleEditFormSubmit(event) {
             .then((movementResponse) => {
               if (movementResponse.success) {
                 showSuccess("Book movement added.");
+                // Прячем форму редактирования/создания, если она открыта
+                document
+                  .getElementById("book-form-container")
+                  .classList.add("d-none");
+
+                // Дополнительно сбрасываем формы
+                document
+                  .getElementById("book-create-form").reset();
+                document                  
+                  .getElementById("book-edit-form").reset();
+                
+                attachBookActionHandlers(); //  Подключаем обработчики
+
               } else {
                 showError(
                   movementResponse.message || "Error saving book movement."
@@ -313,7 +328,8 @@ function deleteBook(bookId) {
     .then((res) => res.json())
     .then((response) => {
       if (response.success) {
-        refreshBookTable();
+        setupBookFilter();
+        // refreshBookTable();
       } else {
         showError("Failed to delete book.");
       }
@@ -418,6 +434,13 @@ function fetchAndRenderFilteredBooks(formData) {
     .then((res) => res.json())
     .then((books) => {
       renderBooksTable(books);
+      // Прячем форму редактирования/создания, если она открыта
+      document.getElementById("book-form-container").classList.add("d-none");
+
+      // Дополнительно сбрасываем формы
+      document.getElementById("book-create-form").reset();
+      document.getElementById("book-edit-form").reset();
+      
     })
     .catch(() => {
       showError("Filter error");
