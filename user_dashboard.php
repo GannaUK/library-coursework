@@ -13,7 +13,6 @@ $stmt->execute(['username' => $username]);
 $user = $stmt->fetch();
 $email = $user['email'] ?? '';
 $dob = $user['dob'] ?? '';
-
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +21,7 @@ $dob = $user['dob'] ?? '';
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>User Dashboard</title>
+    <title>Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 
@@ -35,35 +34,225 @@ $dob = $user['dob'] ?? '';
         </div>
 
         <ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">
+
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users Management</button>
+                <button class="nav-link active" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
             </li>
+
+            <!-- <li class="nav-item" role="presentation">
+                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
+            </li> -->
+
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
+                <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">My Settings</button>
             </li>
         </ul>
 
         <div class="tab-content" id="adminTabContent">
 
 
-            <!-- Users Management Tab -->
-            <div class="tab-pane fade show active" id="users" role="tabpanel">
-                <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Manage Users</h5>
-                    <p>Here will be the user management table or controls.</p>
+
+            <!-- Books Management Tab -->
+            <div class="tab-pane fade show active" id="books" role="tabpanel">
+                <div class="row g-4">
+
+                    <!-- Таблица книг -->
+                    <div class="col-md-8">
+                        <div class="card shadow-sm p-3">
+                            <h5 class="card-title mb-3">All Books </h5>
+                            
+
+                            <!-- Форма фильтрации книг -->
+                            <form id="book-filter-form" class="row g-2 mb-3">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="title" placeholder="Book Title" />
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="author" placeholder="Author" />
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="genre" placeholder="Genre" />
+                                </div>
+
+
+                                <!-- Кнопки в одной строке -->
+                                <div class="col-md-3">
+                                    <div class="row g-2">
+                                        <div class='btn-group' role='group' aria-label='Basic button group'>
+
+                                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+
+                                            <button type="button" id="reset-filter" class="btn btn-secondary w-100">Reset</button>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+
+                            <table class="table table-bordered table-hover" id="books-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Genre</th>
+                                        <th>Description</th>
+                                        <th>Max Days</th>
+                                        <th>Available</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $stmt = $pdo->query("
+                                                SELECT 
+                                                    b.id,
+                                                    b.title,
+                                                    b.genre,
+                                                    b.author,
+                                                    b.description,
+                                                    b.max_days,
+                                                    COALESCE(SUM(m.quantity), 0) AS available
+                                                FROM books b
+                                                LEFT JOIN book_movements m ON b.id = m.book_id
+                                                GROUP BY b.id, b.title, b.genre, b.author, b.description, b.max_days
+                                                ORDER BY b.id ASC
+                                            ");
+
+                                    while ($book = $stmt->fetch()) {
+                                        $bookId = htmlspecialchars($book['id']);
+                                        $title = htmlspecialchars($book['title']);
+                                        $author = htmlspecialchars($book['author']);
+                                        $genre = htmlspecialchars($book['genre']);
+                                        $description = htmlspecialchars($book['description']);
+                                        $days = htmlspecialchars($book['max_days']);
+                                        $available = (int) $book['available']; // для сравнения используем как число
+
+                                        echo "<tr>
+                                            <td>{$bookId}</td>
+                                            <td>{$title}</td>
+                                            <td>{$author}</td>
+                                            <td>{$genre}</td>
+                                            <td>{$description}</td>
+                                            <td>{$days}</td>
+                                            <td>{$available}</td>
+                                            <td>";
+
+                                        if ($available > 0) {
+                                            echo "<button class='btn btn-sm btn-primary order-book-btn' data-id='{$bookId}'>Order</button>";
+                                        } else {
+                                            echo "<span class='text-muted'>Not available</span>";
+                                        }
+
+                                        echo "</td>
+                                                    </tr>";
+                                    }
+                                    ?>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Форма  создания -->
+                    <div class="col-md-4">
+                        <div id="book-form-container" class="card shadow-sm p-3 d-none" style="background-color: #f8f9fa;">
+
+                            <div id="create-book-form" class="d-none">
+                                <h5 class="card-title mb-3" id="book-form-title">Add Book</h5>
+                                <form id="book-create-form">
+                                    <input type="hidden" id="book-id" name="id" />
+                                    <div class="mb-2">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control" name="title" id="book-title" required />
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="book-author" class="form-label">Author</label>
+                                        <input type="text" class="form-control" id="book-author" name="author" required>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label">Genre</label>
+                                        <input type="text" class="form-control" name="genre" id="book-genre" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description" id="book-description" required></textarea>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Max Days</label>
+                                        <input type="number" class="form-control" name="max_days" id="book-days" required min="1" />
+                                    </div>
+
+                                    <!-- <div class="border border-primary rounded p-3 mb-3 bg-light">
+                                        <h6 class="mb-2">Stock Management</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
+                                            <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
+                                        </div>
+                                    </div> -->
+
+                                    <button type="submit" class="btn btn-success w-100" id="book-form-submit">Save Book</button>
+                                </form>
+
+                            </div>
+
+                            <!-- Форма редактирования -->
+                            <div id="edit-book-form" class="d-none">
+                                <h5 class="card-title mb-3">Edit Book</h5>
+                                <form id="book-edit-form">
+                                    <input type="hidden" name="id" id="edit-book-id" />
+                                    <!-- остальные поля, с префиксом edit- -->
+                                    <div class="mb-2">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control" name="title" id="edit-book-title" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Author</label>
+                                        <input type="text" class="form-control" name="author" id="edit-book-author" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Genre</label>
+                                        <input type="text" class="form-control" name="genre" id="edit-book-genre" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description" id="edit-book-description" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Days</label>
+                                        <input type="number" class="form-control" name="max_days" id="edit-book-days" required min="1" />
+                                    </div>
+
+                                    <div class="border border-primary rounded p-3 mb-3 bg-light">
+                                        <h6 class="mb-2">Stock Management</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
+                                            <input type="number" class="form-control" name="quantity" id="quantity" />
+                                        </div>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary w-100" id="book-form-submit">Save Changes</button>
+                                </form>
+                            </div>
+
+
+
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Books Management Tab -->
-            <div class="tab-pane fade" id="books" role="tabpanel">
+
+            <!-- Book Arrivals Tab -->
+            <!-- <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
                 <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Manage Books</h5>
-                    <p>Here will be the books management table or controls.</p>
+                    <h5 class="card-title mb-3">Book Arrivals</h5>
+                    <p>Here we will manage book movement entries (IN).</p>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel">
@@ -90,8 +279,10 @@ $dob = $user['dob'] ?? '';
         </div>
     </div>
 
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/dashboard.js"></script>
+    <script src="js/user_dashboard.js"></script>
 
 </body>
 
