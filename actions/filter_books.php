@@ -1,9 +1,9 @@
 <?php
 require_once '../includes/db.php';
 
-$genre = $_GET['genre'] ?? '';
-$title = $_GET['title'] ?? '';
-$author = $_GET['author'] ?? '';
+$genre = trim($_GET['genre'] ?? '');
+$title = trim($_GET['title'] ?? '');
+$author = trim($_GET['author'] ?? '');
 
 $sql = "
     SELECT 
@@ -21,27 +21,25 @@ $sql = "
 
 $params = [];
 
-if (!empty($genre)) {
+if ($genre !== '') {
     $sql .= " AND b.genre LIKE :genre";
     $params['genre'] = '%' . $genre . '%';
 }
 
-if (!empty($author)) {
+if ($author !== '') {
     $sql .= " AND b.author LIKE :author";
     $params['author'] = '%' . $author . '%';
 }
 
-if (!empty($title)) {
+if ($title !== '') {
     $sql .= " AND b.title LIKE :title";
     $params['title'] = '%' . $title . '%';
 }
 
-// Группировка и сортировка 
 $sql .= "
     GROUP BY b.id, b.title, b.genre, b.author, b.description, b.max_days
     ORDER BY b.id ASC
 ";
-
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);

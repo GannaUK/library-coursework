@@ -23,19 +23,15 @@ if (!$userId) {
 
 try {
     // Допустим, у пользователя могут быть книги 
-    // $stmt = $pdo->prepare("SELECT COUNT(*) FROM books WHERE user_id = :id");
-    // $stmt->execute(['id' => $userId]);
-    // $hasBooks = $stmt->fetchColumn();
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM book_movements WHERE user_id = :id");
+    $stmt->execute(['id' => $userId]);
+    $hasBooks = $stmt->fetchColumn();    
 
-    // $stmt = $pdo->prepare("SELECT COUNT(*) FROM orders WHERE user_id = :id");
-    // $stmt->execute(['id' => $userId]);
-    // $hasOrders = $stmt->fetchColumn();
-
-    // if ($hasBooks > 0 || $hasOrders > 0) {
-    //     http_response_code(409);
-    //     echo json_encode(['success' => false, 'message' => 'Cannot delete user with related data.']);
-    //     exit;
-    // }
+    if ($hasBooks > 0 ) {
+        http_response_code(409);
+        echo json_encode(['success' => false, 'message' => 'Cannot delete user with related data.']);
+        exit;
+    }
 
     // Всё чисто — удаляем
     $stmt = $pdo->prepare("DELETE FROM db_users WHERE id = :id");

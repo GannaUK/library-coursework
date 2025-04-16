@@ -26,6 +26,10 @@ $dob = $user['dob'] ?? '';
 </head>
 
 <body class="bg-light">
+    
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <input type="hidden" id="logged-in-user-id" value="<?= htmlspecialchars($_SESSION['user_id']) ?>">
+    <?php endif; ?>
 
     <div class="container my-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -168,25 +172,19 @@ $dob = $user['dob'] ?? '';
 
                     // Получаем только активные выдачи: те, по которым ещё нет возврата
                     $stmt = $pdo->prepare("
-                        SELECT 
-                            bm.id,
-                            b.title,
-                            b.author,
-                            b.max_days,
-                            bm.quantity,
-                            bm.movement_date
-                        FROM book_movements bm
-                        JOIN books b ON bm.book_id = b.id
-                        WHERE bm.user_id = :user_id
-                        AND bm.quantity < 0
-                        AND NOT EXISTS (
-                            SELECT 1 FROM book_movements r
-                            WHERE r.book_id = bm.book_id
-                            AND r.user_id = bm.user_id
-                            AND r.quantity > 0
-                            AND r.movement_date > bm.movement_date
-                        )
-                        ORDER BY bm.movement_date DESC, bm.id DESC
+                                    SELECT 
+                                        bm.book_id,
+                                        b.title,
+                                        b.author,
+                                        -SUM(bm.quantity) AS quantity,  -- показываем как положительное число
+                                        MIN(bm.movement_date) AS movement_date,
+                                        DATE_ADD(MIN(bm.movement_date), INTERVAL b.max_days DAY) AS expected_return_date
+                                    FROM book_movements bm
+                                    INNER JOIN books b ON bm.book_id = b.id
+                                    WHERE bm.user_id = :user_id
+                                    GROUP BY bm.book_id, b.title, b.author, b.max_days
+                                    HAVING SUM(bm.quantity) < 0
+                                    ORDER BY movement_date DESC           
                     ");
                     $stmt->execute(['user_id' => $userId]);
                     $borrowedBooks = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -204,14 +202,15 @@ $dob = $user['dob'] ?? '';
                             </tr>
                         </thead>
                         <tbody>
+                        <tbody>
                             <?php foreach ($borrowedBooks as $row): ?>
                                 <?php
-                                $id = htmlspecialchars($row['id']);
                                 $author = htmlspecialchars($row['author']);
                                 $title = htmlspecialchars($row['title']);
                                 $quantity = abs((int)$row['quantity']); // показываем как положительное
                                 $borrowDate = htmlspecialchars($row['movement_date']);
-                                $expectedReturn = date('Y-m-d', strtotime($borrowDate . " + {$row['max_days']} days"));
+                                $expectedReturn = htmlspecialchars($row['expected_return_date']);
+                                $bookId = (int)$row['book_id'];
                                 ?>
                                 <tr>
                                     <td><?= $author ?></td>
@@ -220,22 +219,22 @@ $dob = $user['dob'] ?? '';
                                     <td><?= $borrowDate ?></td>
                                     <td><?= $expectedReturn ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-success return-book-btn" data-id="<?= $id ?>">Return book</button>
+                                        <button class="btn btn-sm btn-success return-book-btn" data-id="<?= $bookId ?>">Return book</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
+
                     </table>
 
-                    </tbody>
-                    </table>
+
 
 
                 </div>
             </div>
 
             <!-- Settings Tab -->
-            <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class=" tab-pane fade" id="settings" role="tabpanel">
                 <div class="card shadow-sm p-4">
                     <h5 class="card-title mb-3">Edit Your Profile</h5>
                     <form method="POST" action="actions/update_profile.php">

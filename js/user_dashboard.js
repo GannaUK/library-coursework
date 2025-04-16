@@ -16,22 +16,51 @@ document.addEventListener("DOMContentLoaded", () => {
       fetchAndRenderFilteredBooks(formData);
     });
 
-  document
-    .querySelectorAll(".order-book-btn")
-    .forEach((button) => {
+  document.querySelectorAll(".order-book-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.dataset.id;
+      const userId = document.getElementById("logged-in-user-id").value;
+
+      // Проверка, сколько книг уже выдано
+      try {
+        const checkResponse = await fetch(
+          `actions/book_movements.php?check_active=1&user_id=${encodeURIComponent(
+            userId
+          )}`
+        );
+        const checkResult = await checkResponse.json();
+
+        if (checkResult.success && checkResult.active_loans >= 3) {
+          alert(
+            "You cannot borrow more than 3 different books. Please return a book first."
+          );
+          return;
+        }
+
+        if (confirm("Order this book?")) {
+          moveBook(id, -1);
+        }
+      } catch (error) {
+        console.error("Error checking active loans:", error);
+        alert("An error occurred while checking your borrow limit.");
+      }
+    });
+  });
+
+  document.querySelectorAll(".return-book-btn").forEach((button) => {
     button.addEventListener("click", () => {
       const id = button.dataset.id;
-      if (confirm("Order this book?")) {
-        orderBook(id);
+      if (confirm("Return this book?")) {
+        moveBook(id, 1);
       }
     });
   });
 });
 
-function orderBook(id) {
+function moveBook(id, quantity) {
   const movementData = {
     book_id: id,
-    quantity: -1,
+    quantity: quantity,
   };
 
   fetch("actions/book_movements.php", {
@@ -44,10 +73,9 @@ function orderBook(id) {
     .then((res) => res.json())
     .then((movementResponse) => {
       if (movementResponse.success) {
-        showSuccess("Book movement added.");
+        showSuccess("Success");
 
-        triggerBookFilterSubmit();
-
+        window.location.href = window.location.href;
         attachBookActionHandlers();
       } else {
         showError(movementResponse.message || "Error saving book movement.");
@@ -65,7 +93,6 @@ function showError(message) {
 }
 
 function attachBookActionHandlers() {
-  
   document.querySelectorAll(".order-book-btn").forEach((button) => {
     button.addEventListener("click", () => {
       if (confirm("Order this book?")) {

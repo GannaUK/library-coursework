@@ -47,16 +47,25 @@ try {
 
         echo json_encode(['success' => true]);
     } elseif ($action === 'DELETE') {
-        // Удаление книги
+        
         $id = (int)($data['id'] ?? 0);
+
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM book_movements WHERE book_id = :id");
+        $stmt->execute(['id' => $id]);
+        $hasBooks = $stmt->fetchColumn();
+
+        if ($hasBooks > 0) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => 'Cannot delete book with history data.']);
+            exit;
+        }
 
         $stmt = $pdo->prepare("DELETE FROM books WHERE id = :id");
         $stmt->execute(['id' => $id]);
 
         echo json_encode(['success' => true]);
     } elseif ($action === 'GET') {
-        // Получение всех книг
-        // $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+        
         $stmt = $pdo->query("
             SELECT 
             b.id,

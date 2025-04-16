@@ -17,7 +17,7 @@ try {
     if ($action === 'POST') {
         // Добавление новой записи о движении книги
         $book_id = (int)($data['book_id'] ?? 0);
-        
+
         $quantity = (int)($data['quantity'] ?? 0);
         $movement_date = $data['movement_date'] ?? null;
 
@@ -38,9 +38,37 @@ try {
 
         echo json_encode(['success' => true]);
     } elseif ($action === 'GET') {
+        
+        if (isset($_GET['check_active']) && $_GET['check_active'] == '1') {
+            if (!isset($_GET['user_id']) || !is_numeric($_GET['user_id'])) {
+                throw new Exception("User ID is required for checking.");
+            }
+
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) AS active_loans
+                FROM (
+                    SELECT book_id
+                    FROM book_movements
+                    WHERE user_id = :user_id
+                    GROUP BY book_id
+                    HAVING SUM(quantity) < 0
+                ) AS active
+            ");
+            $stmt->execute(['user_id' => (int)$_GET['user_id']]);
+            $count = $stmt->fetchColumn();
+
+            echo json_encode(['success' => true, 'active_loans' => (int)$count]);
+            exit;
+        }
+
         // Получение всех движений книг с возможной фильтрацией
         $filters = [];
         $params = [];
+
+        if (isset($_GET['user_id']) && $_GET['user_id'] === 'me') {
+            $filters[] = 'bm.user_id = :user_id';
+            $params['user_id'] = $user_id; // из $_SESSION['user_id']
+        }
 
         if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
             $filters[] = 'bm.user_id = :user_id';
@@ -63,13 +91,21 @@ try {
         }
 
         $stmt = $pdo->prepare("
-        SELECT bm.*, b.title, u.username 
-        FROM book_movements bm
-        LEFT JOIN books b ON bm.book_id = b.id
-        LEFT JOIN db_users u ON bm.user_id = u.id
-        $whereClause
-        ORDER BY bm.movement_date DESC
-    ");
+            SELECT 
+                b.title,
+                b.author,
+                -SUM(bm.quantity) AS quantity,  -- показываем как положительное число
+                MIN(bm.movement_date) AS movement_date,
+                DATE_ADD(MIN(bm.movement_date), INTERVAL b.max_days DAY) AS expected_return_date
+            FROM book_movements bm
+            INNER JOIN books b ON bm.book_id = b.id
+            WHERE bm.user_id = :user_id
+                                    
+            $whereClause
+            GROUP BY bm.book_id, b.title, b.author, b.max_days
+                HAVING SUM(bm.quantity) < 0
+                ORDER BY movement_date DESC 
+            ");
         $stmt->execute($params);
         $movements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
