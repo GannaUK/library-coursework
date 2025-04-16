@@ -7,7 +7,7 @@ $action = $_SERVER['REQUEST_METHOD'];
 
 try {
     if ($action === 'POST') {
-        // Создание новой книги
+        // create book
         $title = $data['title'] ?? '';
         $author = $data['author'] ?? '';
         $genre = $data['genre'] ?? '';
@@ -27,7 +27,7 @@ try {
 
         echo json_encode(['success' => true]);
     } elseif ($action === 'PUT') {
-        // Редактирование существующей книги
+        // edit book
         $id = (int)($data['id'] ?? 0);
         $title = $data['title'] ?? '';
         $author = $data['author'] ?? '';

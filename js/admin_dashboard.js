@@ -72,6 +72,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData(form);
       fetchAndRenderFilteredBooks(formData);
     });
+  
+  // chart will be created once the "Reports" tab is shown
+  document
+    .querySelector('button[data-bs-target="#reports"]')
+    .addEventListener("shown.bs.tab", () => {
+      renderGenreChart();
+      renderTopReadersChart();
+      renderTopBooksChart();
+    });
 });
 
 function setupCreateForm(button, form, createContainer, editContainer) {
@@ -341,6 +350,46 @@ function showError(message) {
 }
 
 function attachBookActionHandlers() {
+  const chartCanvas = document.getElementById("genreChart");
+      if (!chartCanvas) return;
+
+      const ctx = chartCanvas.getContext("2d");
+
+      fetch("actions/genre_stats.php")
+        .then((res) => res.json())
+        .then((data) => {
+          const genres = data.map((item) => item.genre);
+          const counts = data.map((item) => item.total_borrowed);
+
+          new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: genres,
+              datasets: [
+                {
+                  label: "Books Borrowed",
+                  data: counts,
+                  backgroundColor: "rgba(54, 162, 235, 0.6)",
+                  borderColor: "rgba(54, 162, 235, 1)",
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                },
+              },
+            },
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to load chart data:", err);
+        });
+
+    
   document.querySelectorAll(".edit-book-btn").forEach((button) => {
     button.addEventListener("click", () => {
       showEditBookForm({
@@ -456,3 +505,116 @@ function triggerBookFilterSubmit() {
   const event = new Event("submit", { bubbles: true, cancelable: true });
   form.dispatchEvent(event);
 }
+
+function renderGenreChart(){
+ fetch('actions/genre_stats.php')
+    .then(res => res.json())
+    .then(data => {
+      const genres = data.map(item => item.genre);
+      const counts = data.map(item => item.total_borrowed);
+
+      const ctx = document.getElementById('genreChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: genres,
+          datasets: [{
+            label: 'Books Borrowed',
+            data: counts,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Chart error:", err);
+    });
+}
+
+function renderTopReadersChart() {
+  fetch("actions/top_reader.php")
+    .then((res) => res.json())
+    .then((data) => {
+      const names = data.map((item) => item.username);
+      const totals = data.map((item) => item.total_books);
+
+      const ctx = document.getElementById("topReadersChart").getContext("2d");
+
+      new Chart(ctx, {
+        type: "pie",
+        data: {
+          labels: names,
+          datasets: [
+            {
+              label: "Books Borrowed",
+              data: totals,
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.6)",
+                "rgba(54, 162, 235, 0.6)",
+                "rgba(255, 206, 86, 0.6)",
+                "rgba(75, 192, 192, 0.6)",
+                "rgba(153, 102, 255, 0.6)",
+                "rgba(255, 159, 64, 0.6)",
+              ],
+              borderColor: "#fff",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      });
+    })
+    .catch((err) => {
+      console.error("Chart error:", err);
+    });
+}
+
+
+function renderTopBooksChart() {
+  fetch("actions/top_books.php")
+    .then((res) => res.json())
+    .then((data) => {
+      const titles = data.map((item) => item.title);
+      const totals = data.map((item) => item.total_borrowed);
+      const ctx = document.getElementById("topBooksChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: titles,
+          datasets: [
+            {
+              label: "Times Borrowed",
+              data: totals,
+              backgroundColor: "rgba(255, 159, 64, 0.6)",
+              borderColor: "rgba(255, 159, 64, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true },
+          },
+        },
+      });
+    });
+}
+

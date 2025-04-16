@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const id = button.dataset.id;
       const userId = document.getElementById("logged-in-user-id").value;
 
-      // Проверка, сколько книг уже выдано
+      // Check how many books are already borrowed
       try {
         const checkResponse = await fetch(
           `actions/book_movements.php?check_active=1&user_id=${encodeURIComponent(

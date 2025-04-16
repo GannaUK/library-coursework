@@ -5,7 +5,8 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 $username = $_SESSION['username'];
-
+$isLoggedIn = isset($_SESSION['user_id']);
+$isAdmin = ($_SESSION['role'] ?? '') === 'admin';
 require_once 'includes/db.php';
 
 $stmt = $pdo->prepare("SELECT email, dob FROM db_users WHERE username = :username");
@@ -26,15 +27,38 @@ $dob = $user['dob'] ?? '';
 </head>
 
 <body class="bg-light">
-    
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php">Home</a>
+                    </li>
+                    <?php if ($isLoggedIn): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= $isAdmin ? 'admin_dashboard.php' : 'user_dashboard.php' ?>">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="actions/logout.php">Logout</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.php">Login</a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <?php if (isset($_SESSION['user_id'])): ?>
         <input type="hidden" id="logged-in-user-id" value="<?= htmlspecialchars($_SESSION['user_id']) ?>">
     <?php endif; ?>
 
     <div class="container my-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">Welcome, <?= htmlspecialchars($username) ?>!</h1>
-            <a href="actions/logout.php" class="btn btn-outline-secondary btn-sm">Logout</a>
+            <h1 class="h3">Welcome to the User Dashboard, <?= htmlspecialchars($username) ?>!</h1>
         </div>
 
         <ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">

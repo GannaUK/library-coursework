@@ -5,7 +5,8 @@ if (!isset($_SESSION['username'])) {
     exit;
 }
 $username = $_SESSION['username'];
-
+$isLoggedIn = isset($_SESSION['user_id']);
+$isAdmin = ($_SESSION['role'] ?? '') === 'admin';
 require_once 'includes/db.php';
 
 $stmt = $pdo->prepare("SELECT email, dob FROM db_users WHERE username = :username");
@@ -23,14 +24,40 @@ $dob = $user['dob'] ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
 </head>
 
 <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+
+            <div class="collapse navbar-collapse justify-content-end">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php">Home</a>
+                    </li>
+                    <?php if ($isLoggedIn): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= $isAdmin ? 'admin_dashboard.php' : 'user_dashboard.php' ?>">Dashboard</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="actions/logout.php">Logout</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="login.php">Login</a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <div class="container my-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3">Welcome, <?= htmlspecialchars($username) ?>!</h1>
-            <a href="actions/logout.php" class="btn btn-outline-secondary btn-sm">Logout</a>
+            <h1 class="h3">Welcome to the Admin Dashboard, <?= htmlspecialchars($username) ?>!</h1>
+
         </div>
 
         <ul class="nav nav-tabs mb-3" id="adminTab" role="tablist">
@@ -41,9 +68,9 @@ $dob = $user['dob'] ?? '';
                 <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
             </li>
 
-            <!-- <li class="nav-item" role="presentation">
-                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
-            </li> -->
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports & Analitics</button>
+            </li>
 
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">My Settings</button>
@@ -197,7 +224,7 @@ $dob = $user['dob'] ?? '';
                                         <div class='btn-group' role='group' aria-label='Basic button group'>
 
                                             <button type="submit" class="btn btn-primary w-100">Filter</button>
-                                            
+
                                             <button type="button" id="reset-filter" class="btn btn-secondary w-100">Reset</button>
 
                                         </div>
@@ -365,13 +392,33 @@ $dob = $user['dob'] ?? '';
             </div>
 
 
-            <!-- Book Arrivals Tab -->
-            <!-- <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
+            <!-- Reports Tab -->
+            <!-- Reports Tab -->
+            <div class="tab-pane fade" id="reports" role="tabpanel">
                 <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Book Arrivals</h5>
-                    <p>Here we will manage book movement entries (IN).</p>
+                    <h5 class="card-title mb-4">Reports & Analytics</h5>
+                    <div class="row text-center">
+                        <!-- Chart 1 -->
+                        <div class="col-md-4 mb-4">
+                            <h6>Popular Genres</h6>
+                            <canvas id="genreChart" width="200" height="200"></canvas>
+                        </div>
+
+                        <!-- Chart 2 -->
+                        <div class="col-md-4 mb-4">
+                            <h6>Top Readers</h6>
+                            <canvas id="topReadersChart" width="200" height="200"></canvas>
+                        </div>
+
+                        <!-- Chart 3 -->
+                        <div class="col-md-4 mb-4">
+                            <h6>Most Borrowed Books</h6>
+                            <canvas id="topBooksChart" width="200" height="200"></canvas>
+                        </div>
+                    </div>
                 </div>
-            </div> -->
+            </div>
+
 
             <!-- Settings Tab -->
             <div class="tab-pane fade" id="settings" role="tabpanel">
@@ -400,8 +447,10 @@ $dob = $user['dob'] ?? '';
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="js/dashboard.js"></script>
     <script src="js/admin_dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

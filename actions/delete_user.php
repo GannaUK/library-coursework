@@ -4,7 +4,7 @@ require_once '../includes/db.php';
 
 header('Content-Type: application/json');
 
-// Только для админов
+
 if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Access denied.']);
@@ -22,7 +22,7 @@ if (!$userId) {
 
 
 try {
-    // Допустим, у пользователя могут быть книги 
+    
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM book_movements WHERE user_id = :id");
     $stmt->execute(['id' => $userId]);
     $hasBooks = $stmt->fetchColumn();    
@@ -33,7 +33,7 @@ try {
         exit;
     }
 
-    // Всё чисто — удаляем
+    
     $stmt = $pdo->prepare("DELETE FROM db_users WHERE id = :id");
     $stmt->execute(['id' => $userId]);
 

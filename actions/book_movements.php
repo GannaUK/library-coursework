@@ -15,7 +15,7 @@ $action = $_SERVER['REQUEST_METHOD'];
 $user_id = (int)$_SESSION['user_id'];
 try {
     if ($action === 'POST') {
-        // Добавление новой записи о движении книги
+        // new movement
         $book_id = (int)($data['book_id'] ?? 0);
 
         $quantity = (int)($data['quantity'] ?? 0);
@@ -61,13 +61,13 @@ try {
             exit;
         }
 
-        // Получение всех движений книг с возможной фильтрацией
+        // active movements
         $filters = [];
         $params = [];
 
         if (isset($_GET['user_id']) && $_GET['user_id'] === 'me') {
             $filters[] = 'bm.user_id = :user_id';
-            $params['user_id'] = $user_id; // из $_SESSION['user_id']
+            $params['user_id'] = $user_id; //  $_SESSION['user_id']
         }
 
         if (isset($_GET['user_id']) && is_numeric($_GET['user_id'])) {
@@ -82,7 +82,7 @@ try {
 
         if (isset($_GET['date'])) {
             $filters[] = 'DATE(bm.movement_date) = :movement_date';
-            $params['movement_date'] = $_GET['date']; // Ожидается в формате YYYY-MM-DD
+            $params['movement_date'] = $_GET['date']; //  YYYY-MM-DD
         }
 
         $whereClause = '';
@@ -94,7 +94,7 @@ try {
             SELECT 
                 b.title,
                 b.author,
-                -SUM(bm.quantity) AS quantity,  -- показываем как положительное число
+                -SUM(bm.quantity) AS quantity, 
                 MIN(bm.movement_date) AS movement_date,
                 DATE_ADD(MIN(bm.movement_date), INTERVAL b.max_days DAY) AS expected_return_date
             FROM book_movements bm
