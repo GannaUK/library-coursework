@@ -186,13 +186,9 @@ $dob = $user['dob'] ?? '';
                                     <input type="text" class="form-control" name="author" placeholder="Author" />
                                 </div>
                                 <div class="col-md-3">
-                                    <select class="form-select" name="genre">
-                                        <option value="">All Genres</option>
-                                        <option value="Fiction">Fiction</option>
-                                        <option value="History">History</option>
-                                        <option value="Science">Science</option>
-                                    </select>
+                                    <input type="text" class="form-control" name="genre" placeholder="Genre" />
                                 </div>
+                                
 
                                 <!-- Кнопки в одной строке -->
                                 <div class="col-md-3">
@@ -291,13 +287,13 @@ $dob = $user['dob'] ?? '';
                                         <input type="number" class="form-control" name="max_days" id="book-days" required min="1" />
                                     </div>
 
-                                    <div class="border border-primary rounded p-3 mb-3 bg-light">
+                                    <!-- <div class="border border-primary rounded p-3 mb-3 bg-light">
                                         <h6 class="mb-2">Stock Management</h6>
                                         <div class="mb-2">
                                             <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
                                             <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <button type="submit" class="btn btn-success w-100" id="book-form-submit">Save Book</button>
                                 </form>
@@ -330,12 +326,12 @@ $dob = $user['dob'] ?? '';
                                         <label class="form-label">Max Days</label>
                                         <input type="number" class="form-control" name="max_days" id="edit-book-days" required min="1" />
                                     </div>
-                                   
+
                                     <div class="border border-primary rounded p-3 mb-3 bg-light">
                                         <h6 class="mb-2">Stock Management</h6>
                                         <div class="mb-2">
                                             <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
-                                            <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
+                                            <input type="number" class="form-control" name="quantity" id="quantity"  />
                                         </div>
                                     </div>
 

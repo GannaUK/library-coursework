@@ -9,8 +9,8 @@ $sql = "SELECT * FROM books WHERE 1=1";
 $params = [];
 
 if (!empty($genre)) {
-    $sql .= " AND genre = :genre";
-    $params['genre'] = $genre;
+    $sql .= " AND genre LIKE :genre";
+    $params['genre'] = '%' . $genre . '%';
 }
 
 if (!empty($titleFragment)) {

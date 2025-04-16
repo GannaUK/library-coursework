@@ -251,6 +251,7 @@ function handleEditFormSubmit(event) {
     genre: form.genre.value,
     description: form.description.value,
     max_days: parseInt(form.max_days.value, 10) || 14,
+    quantity: parseInt(form.quantity.value),
   };
 
   fetch("actions/books.php", {
@@ -265,6 +266,35 @@ function handleEditFormSubmit(event) {
       if (response.success) {
         showSuccess("Book updated!");
         refreshBookTable(); // обновим таблицу
+        //  fetchAndRenderFilteredBooks(formData);
+
+        // Если есть значение quantity — создаём движение книги
+        if (!isNaN(data.quantity) && data.quantity !== 0) {
+          const movementData = {
+            book_id: data.id,
+            quantity: data.quantity,
+            // При необходимости можно добавить user_id и movement_date
+          };
+
+          fetch("actions/book_movements.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(movementData),
+          })
+            .then((res) => res.json())
+            .then((movementResponse) => {
+              if (movementResponse.success) {
+                showSuccess("Book movement added.");
+              } else {
+                showError(
+                  movementResponse.message || "Error saving book movement."
+                );
+              }
+            })
+            .catch(() => showError("Server error when adding movement."));
+        }
       } else {
         showError(response.message || "Error updating book.");
       }
@@ -366,6 +396,12 @@ function refreshBookTable() {
         tbody.appendChild(row);
       });
 
+      // Прячем форму редактирования/создания, если она открыта
+      document.getElementById("book-form-container").classList.add("d-none");
+
+      // Дополнительно сбрасываем формы
+      document.getElementById("book-create-form").reset();
+      document.getElementById("book-edit-form").reset();
       attachBookActionHandlers(); //  Подключаем обработчики
     })
     .catch(() => showError("Error loading books."));
