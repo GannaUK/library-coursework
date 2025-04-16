@@ -41,6 +41,10 @@ $dob = $user['dob'] ?? '';
                 <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Book Arrivals</button>
+            </li>
+
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">Settings</button>
             </li>
         </ul>
@@ -163,9 +167,172 @@ $dob = $user['dob'] ?? '';
 
             <!-- Books Management Tab -->
             <div class="tab-pane fade" id="books" role="tabpanel">
+                <div class="row g-4">
+
+                    <!-- Таблица книг -->
+                    <div class="col-md-8">
+                        <div class="card shadow-sm p-3">
+                            <h5 class="card-title mb-3">Books List</h5>
+                            <button id="show-create-book-form" class="btn btn-success btn-sm mb-3">+ Add New Book</button>
+
+                            <!-- Форма фильтрации книг -->
+                            <form id="book-filter-form" class="row g-2 mb-3">
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="title" placeholder="Book Title" />
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" name="author" placeholder="Author" />
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" name="genre">
+                                        <option value="">All Genres</option>
+                                        <option value="Fiction">Fiction</option>
+                                        <option value="History">History</option>
+                                        <option value="Science">Science</option>
+                                    </select>
+                                </div>
+
+                                <!-- Кнопки в одной строке -->
+                                <div class="col-md-3">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <button type="submit" class="btn btn-primary w-100">Filter</button>
+                                        </div>
+                                        <div class="col-6">
+                                            <button type="button" id="reset-filter" class="btn btn-secondary w-100">Reset</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+
+
+                            <table class="table table-bordered table-hover" id="books-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Genre</th>
+                                        <th>Description</th>
+                                        <th>Max Days</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $stmt = $pdo->query("SELECT * FROM books ORDER BY id ASC");
+                                    while ($book = $stmt->fetch()) {
+                                        $bookId = htmlspecialchars($book['id']);
+                                        $title = htmlspecialchars($book['title']);
+                                        $author = htmlspecialchars($book['author']);
+                                        $genre = htmlspecialchars($book['genre']);
+                                        $description = htmlspecialchars($book['description']);
+                                        $days = htmlspecialchars($book['max_days']);
+
+                                        echo "<tr>
+                                <td>{$bookId}</td>
+                                <td>{$title}</td>
+                                <td>{$author}</td>
+                                <td>{$genre}</td>
+                                <td>{$description}</td>
+                                <td>{$days}</td>
+                                <td>
+                                    <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
+                                        data-id='{$bookId}'
+                                        data-title='{$title}'
+                                        data-author='{$author}'
+                                        data-genre='{$genre}'
+                                        data-description='{$description}'
+                                        data-days='{$days}'
+                                    >Edit</button>
+                                    <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='{$bookId}'>Delete</button>
+                                </td>
+                            </tr>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Форма  создания -->
+                    <div class="col-md-4">
+                        <div id="book-form-container" class="card shadow-sm p-3 d-none" style="background-color: #f8f9fa;">
+
+                            <div id="create-book-form" class="d-none">
+                                <h5 class="card-title mb-3" id="book-form-title">Add Book</h5>
+                                <form id="book-create-form">
+                                    <input type="hidden" id="book-id" name="id" />
+                                    <div class="mb-2">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control" name="title" id="book-title" required />
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="book-author" class="form-label">Author</label>
+                                        <input type="text" class="form-control" id="book-author" name="author" required>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label">Genre</label>
+                                        <input type="text" class="form-control" name="genre" id="book-genre" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description" id="book-description" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Days</label>
+                                        <input type="number" class="form-control" name="max_days" id="book-days" required min="1" />
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100" id="book-form-submit">Save Book</button>
+                                </form>
+
+                            </div>
+
+                            <!-- Форма редактирования -->
+                            <div id="edit-book-form" class="d-none">
+                                <h5 class="card-title mb-3">Edit Book</h5>
+                                <form id="book-edit-form">
+                                    <input type="hidden" name="id" id="edit-book-id" />
+                                    <!-- остальные поля, с префиксом edit- -->
+                                    <div class="mb-2">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control" name="title" id="edit-book-title" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Author</label>
+                                        <input type="text" class="form-control" name="author" id="edit-book-author" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Genre</label>
+                                        <input type="text" class="form-control" name="genre" id="edit-book-genre" required />
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" name="description" id="edit-book-description" required></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Max Days</label>
+                                        <input type="number" class="form-control" name="max_days" id="edit-book-days" required min="1" />
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100" id="book-form-submit">Save Changes</button>
+                                </form>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Book Arrivals Tab -->
+            <div class="tab-pane fade" id="book-arrivals" role="tabpanel">
                 <div class="card shadow-sm p-4">
-                    <h5 class="card-title mb-3">Manage Books</h5>
-                    <p>Here will be the books management table or controls.</p>
+                    <h5 class="card-title mb-3">Book Arrivals</h5>
+                    <p>Here we will manage book movement entries (IN).</p>
                 </div>
             </div>
 
@@ -193,6 +360,7 @@ $dob = $user['dob'] ?? '';
 
         </div>
     </div>
+    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/dashboard.js"></script>

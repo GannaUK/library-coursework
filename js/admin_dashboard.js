@@ -15,6 +15,62 @@ document.addEventListener("DOMContentLoaded", () => {
   setupEditButtons(editFormContainer, createFormContainer);
   setupEditForm(editForm);
   setupDeleteButtons();
+
+  // Кнопка "Добавить книгу"
+  document
+    .getElementById("show-create-book-form")
+    .addEventListener("click", function () {
+      showCreateBookForm();
+    });
+
+  // Кнопки "Редактировать"
+  document.querySelectorAll(".edit-book-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const bookData = {
+        id: btn.dataset.id,
+        title: btn.dataset.title,
+        author: btn.dataset.author,
+        genre: btn.dataset.genre,
+        description: btn.dataset.description,
+        days: btn.dataset.days,
+      };
+      showEditBookForm(bookData);
+    });
+  });
+
+  document.querySelectorAll(".delete-book-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.dataset.id;
+      if (confirm("Delete this book?")) {
+        deleteBook(id);
+      }
+    });
+  });
+
+  document
+    .getElementById("book-create-form")
+    .addEventListener("submit", handleCreateFormSubmit);
+
+  document
+    .getElementById("book-edit-form")
+    .addEventListener("submit", handleEditFormSubmit);
+
+  document
+    .getElementById("book-filter-form")
+    .addEventListener("submit", function (e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      fetchAndRenderFilteredBooks(formData);
+    });
+
+  document
+    .getElementById("reset-filter")
+    .addEventListener("click", function () {
+      const form = document.getElementById("book-filter-form");
+      form.reset();
+      const formData = new FormData(form);
+      fetchAndRenderFilteredBooks(formData);
+    });
 });
 
 function setupCreateForm(button, form, createContainer, editContainer) {
@@ -118,3 +174,277 @@ function handleResponse(res, result, successMessage) {
     alert(result.message || result.error || "Operation failed");
   }
 }
+// Book Management Functions
+function showCreateBookForm() {
+  const formContainer = document.getElementById("book-form-container");
+  const createForm = document.getElementById("create-book-form");
+  const editForm = document.getElementById("edit-book-form");
+
+  formContainer.classList.remove("d-none");
+  createForm.classList.remove("d-none");
+  editForm.classList.add("d-none");
+
+  document.getElementById("book-create-form").reset();
+}
+
+function showEditBookForm(bookData) {
+  const formContainer = document.getElementById("book-form-container");
+  const createForm = document.getElementById("create-book-form");
+  const editForm = document.getElementById("edit-book-form");
+
+  formContainer.classList.remove("d-none");
+  createForm.classList.add("d-none");
+  editForm.classList.remove("d-none");
+
+  document.getElementById("edit-book-id").value = bookData.id;
+  document.getElementById("edit-book-title").value = bookData.title;
+  document.getElementById("edit-book-author").value = bookData.author;
+  document.getElementById("edit-book-genre").value = bookData.genre;
+  document.getElementById("edit-book-description").value = bookData.description;
+  document.getElementById("edit-book-days").value = bookData.days;
+}
+
+// Отправка формы создания книги
+function handleCreateFormSubmit(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const data = {
+    action: "create",
+    title: form.title.value,
+    author: form.author.value,
+    genre: form.genre.value,
+    description: form.description.value,
+    max_days: parseInt(form.max_days.value, 10) || 14,
+  };
+
+  fetch("actions/books.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success) {
+        form.reset();
+        showSuccess("Book added!");
+        refreshBookTable(); // обновим таблицу
+      } else {
+        showError(response.message || "Error adding book.");
+      }
+    })
+    .catch(() => showError("Server error."));
+}
+
+// Отправка формы редактирования книги
+function handleEditFormSubmit(event) {
+  event.preventDefault();
+
+  const form = event.target;
+  const data = {
+    action: "update",
+    id: form.id.value,
+    title: form.title.value,
+    author: form.author.value,
+    genre: form.genre.value,
+    description: form.description.value,
+    max_days: parseInt(form.max_days.value, 10) || 14,
+  };
+
+  fetch("actions/books.php", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success) {
+        showSuccess("Book updated!");
+        refreshBookTable(); // обновим таблицу
+      } else {
+        showError(response.message || "Error updating book.");
+      }
+    })
+    .catch(() => showError("Server error."));
+}
+
+function deleteBook(bookId) {
+  fetch("actions/books.php", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id: bookId }),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success) {
+        refreshBookTable();
+      } else {
+        showError("Failed to delete book.");
+      }
+    })
+    .catch(() => showError("Error deleting book."));
+}
+
+function showSuccess(message) {
+  alert(message); // можно заменить на toast
+}
+
+function showError(message) {
+  alert("Error: " + message);
+}
+
+function attachBookActionHandlers() {
+  document.querySelectorAll(".edit-book-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      showEditBookForm({
+        id: button.dataset.id,
+        title: button.dataset.title,
+        author: button.dataset.author,
+        genre: button.dataset.genre,
+        description: button.dataset.description,
+        days: button.dataset.days,
+      });
+    });
+  });
+
+  document.querySelectorAll(".delete-book-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (confirm("Delete this book?")) {
+        deleteBook(button.dataset.id);
+      }
+    });
+  });
+}
+
+// Обновление таблицы книг после изменений
+function refreshBookTable() {
+  fetch("actions/books.php", {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (!response.success) {
+        showError("Failed to load books.");
+        return;
+      }
+
+      const books = response.books;
+      const tbody = document.querySelector("#books-table tbody");
+      tbody.innerHTML = "";
+
+      books.forEach((book) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+                    <td>${book.id}</td>
+                    <td>${book.title}</td>
+                    <td>${book.author}</td>
+                    <td>${book.genre}</td>
+                    <td>${book.description}</td>
+                    <td>${book.max_days}</td>
+                    <td>
+                        <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
+                            data-id='${book.id}'
+                            data-title='${book.title}'
+                            data-author='${book.author}'
+                            data-genre='${book.genre}'
+                            data-description='${book.description}'
+                            data-days='${book.max_days}'>Edit</button>
+                        <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='${book.id}'>Delete</button>
+                    </td>
+                `;
+        tbody.appendChild(row);
+      });
+
+      attachBookActionHandlers(); //  Подключаем обработчики
+    })
+    .catch(() => showError("Error loading books."));
+}
+
+
+
+function fetchAndRenderFilteredBooks(formData) {
+  const title = encodeURIComponent(formData.get("title").trim());
+  const author = encodeURIComponent(formData.get("author").trim());
+  const genre = encodeURIComponent(formData.get("genre"));
+
+  const url = `actions/filter_books.php?title=${title}&author=${author}&genre=${genre}`;
+
+  fetch(url)
+    .then((res) => res.json())
+    .then((books) => {
+      renderBooksTable(books);
+    })
+    .catch(() => {
+      showError("Filter error");
+    });
+}
+
+function renderBooksTable(books) {
+  const tbody = document.querySelector("#books-table tbody");
+  tbody.innerHTML = ""; // очищаем старые строки
+
+  if (books.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="text-center">No books found</td></tr>`;
+    return;
+  }
+
+  books.forEach((book) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+            <td>${book.id}</td>
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.genre}</td>
+            <td>${book.description}</td>
+            <td>${book.max_days}</td>
+            <td>
+                <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
+                    data-id='${book.id}'
+                    data-title='${book.title}'
+                    data-author='${book.author}'
+                    data-genre='${book.genre}'
+                    data-description='${book.description}'
+                    data-days='${book.max_days}'
+                >Edit</button>
+                <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='${book.id}'>Delete</button>
+            </td>
+        `;
+    tbody.appendChild(tr);
+  });
+
+  attachBookActionHandlers(); //  Подключаем обработчики
+}
+
+function setupBookFilter() {
+  const form = document.getElementById("book-filter-form");
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const formData = new FormData(form);
+    fetchAndRenderFilteredBooks(formData);
+  });
+
+  document
+    .getElementById("reset-filter")
+    .addEventListener("click", function () {
+      form.reset();
+      fetch("actions/filter_books.php")
+        .then((response) => response.json())
+        .then((data) => {
+          renderBooksTable(data.books || []);
+        })
+        .catch(() => {
+          showError("Error resetting filter");
+        });
+    });
+}
+
