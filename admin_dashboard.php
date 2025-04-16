@@ -38,10 +38,10 @@ $dob = $user['dob'] ?? '';
                 <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users Management</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books Management</button>
+                <button class="nav-link" id="books-tab" data-bs-toggle="tab" data-bs-target="#books" type="button" role="tab">Books List</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Book Arrivals</button>
+                <button class="nav-link" id="book-arrivals-tab" data-bs-toggle="tab" data-bs-target="#book-arrivals" type="button" role="tab">Books Management</button>
             </li>
 
             <li class="nav-item" role="presentation">
@@ -89,6 +89,7 @@ $dob = $user['dob'] ?? '';
                                             <td>{$email}</td>
                                             <td>{$dob}</td>
                                             <td>
+                                                <div class='btn-group' role='group' aria-label='Basic button group'>
                                                 <button class='btn btn-sm btn-outline-primary me-1 edit-user' 
                                                     data-id='{$id}'
                                                     data-username='{$username}'
@@ -97,7 +98,8 @@ $dob = $user['dob'] ?? '';
                                                     data-dob='{$dob}'
                                                 >Edit</button>
                                                 <a href='#' class='btn btn-sm btn-outline-danger btn-delete-user' data-id='{$id}'>Delete</a>
-                                            </td>
+                                            </div>
+                                                </td>
                                         </tr>";
                                     }
                                     ?>
@@ -172,7 +174,7 @@ $dob = $user['dob'] ?? '';
                     <!-- Таблица книг -->
                     <div class="col-md-8">
                         <div class="card shadow-sm p-3">
-                            <h5 class="card-title mb-3">Books List</h5>
+                            <h5 class="card-title mb-3">All Books </h5>
                             <button id="show-create-book-form" class="btn btn-success btn-sm mb-3">+ Add New Book</button>
 
                             <!-- Форма фильтрации книг -->
@@ -195,11 +197,12 @@ $dob = $user['dob'] ?? '';
                                 <!-- Кнопки в одной строке -->
                                 <div class="col-md-3">
                                     <div class="row g-2">
-                                        <div class="col-6">
+                                        <div class='btn-group' role='group' aria-label='Basic button group'>
+
                                             <button type="submit" class="btn btn-primary w-100">Filter</button>
-                                        </div>
-                                        <div class="col-6">
+
                                             <button type="button" id="reset-filter" class="btn btn-secondary w-100">Reset</button>
+
                                         </div>
                                     </div>
                                 </div>
@@ -237,6 +240,7 @@ $dob = $user['dob'] ?? '';
                                 <td>{$description}</td>
                                 <td>{$days}</td>
                                 <td>
+                                <div class='btn-group' role='group' aria-label='Basic button group'>
                                     <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
                                         data-id='{$bookId}'
                                         data-title='{$title}'
@@ -244,8 +248,9 @@ $dob = $user['dob'] ?? '';
                                         data-genre='{$genre}'
                                         data-description='{$description}'
                                         data-days='{$days}'
-                                    >Edit</button>
+                                    >  Edit     </button>
                                     <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='{$bookId}'>Delete</button>
+                                </div>
                                 </td>
                             </tr>";
                                     }
@@ -281,10 +286,19 @@ $dob = $user['dob'] ?? '';
                                         <label class="form-label">Description</label>
                                         <textarea class="form-control" name="description" id="book-description" required></textarea>
                                     </div>
-                                    <div class="mb-3">
+                                    <div class="mb-2">
                                         <label class="form-label">Max Days</label>
                                         <input type="number" class="form-control" name="max_days" id="book-days" required min="1" />
                                     </div>
+
+                                    <div class="border border-primary rounded p-3 mb-3 bg-light">
+                                        <h6 class="mb-2">Stock Management</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
+                                            <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
+                                        </div>
+                                    </div>
+
                                     <button type="submit" class="btn btn-success w-100" id="book-form-submit">Save Book</button>
                                 </form>
 
@@ -316,6 +330,15 @@ $dob = $user['dob'] ?? '';
                                         <label class="form-label">Max Days</label>
                                         <input type="number" class="form-control" name="max_days" id="edit-book-days" required min="1" />
                                     </div>
+                                   
+                                    <div class="border border-primary rounded p-3 mb-3 bg-light">
+                                        <h6 class="mb-2">Stock Management</h6>
+                                        <div class="mb-2">
+                                            <label class="form-label">Enter the number of copies: positive to add to the shelf, negative to remove.</label>
+                                            <input type="number" class="form-control" name="quantity" id="quantity" min="0" />
+                                        </div>
+                                    </div>
+
                                     <button type="submit" class="btn btn-primary w-100" id="book-form-submit">Save Changes</button>
                                 </form>
                             </div>
@@ -360,7 +383,7 @@ $dob = $user['dob'] ?? '';
 
         </div>
     </div>
-    
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/dashboard.js"></script>

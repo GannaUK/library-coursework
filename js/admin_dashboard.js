@@ -351,6 +351,7 @@ function refreshBookTable() {
                     <td>${book.description}</td>
                     <td>${book.max_days}</td>
                     <td>
+                    <div class='btn-group' role='group' aria-label='Basic button group'>
                         <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
                             data-id='${book.id}'
                             data-title='${book.title}'
@@ -359,6 +360,7 @@ function refreshBookTable() {
                             data-description='${book.description}'
                             data-days='${book.max_days}'>Edit</button>
                         <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='${book.id}'>Delete</button>
+                        </div>
                     </td>
                 `;
         tbody.appendChild(row);
@@ -368,8 +370,6 @@ function refreshBookTable() {
     })
     .catch(() => showError("Error loading books."));
 }
-
-
 
 function fetchAndRenderFilteredBooks(formData) {
   const title = encodeURIComponent(formData.get("title").trim());
@@ -407,6 +407,7 @@ function renderBooksTable(books) {
             <td>${book.description}</td>
             <td>${book.max_days}</td>
             <td>
+            <div class='btn-group' role='group' aria-label='Basic button group'>
                 <button class='btn btn-sm btn-outline-primary me-1 edit-book-btn'
                     data-id='${book.id}'
                     data-title='${book.title}'
@@ -416,6 +417,7 @@ function renderBooksTable(books) {
                     data-days='${book.max_days}'
                 >Edit</button>
                 <button class='btn btn-sm btn-outline-danger delete-book-btn' data-id='${book.id}'>Delete</button>
+                </div>
             </td>
         `;
     tbody.appendChild(tr);
@@ -447,4 +449,3 @@ function setupBookFilter() {
         });
     });
 }
-
